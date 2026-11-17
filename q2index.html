@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>News Headlines Viewer</title>
+
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #222;
+        }
+
+
+        header {
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+
+        header h1 {
+            margin-bottom: 10px;
+        }
+
+
+        main {
+            width: 90%;
+            max-width: 1000px;
+            margin: 30px auto;
+        }
+
+
+        .control {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            background: white;
+
+            padding: 20px;
+
+            border-radius: 10px;
+
+            margin-bottom: 20px;
+        }
+
+
+        button {
+
+            padding: 12px 20px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #2563eb;
+
+            color: white;
+
+            cursor: pointer;
+
+            font-size: 15px;
+        }
+
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+
+        #status {
+
+            text-align: center;
+
+            margin: 20px;
+
+            font-weight: bold;
+        }
+
+
+        .news-container {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+        }
+
+
+        .news-card {
+
+            background: white;
+
+            padding: 20px;
+
+            border-radius: 10px;
+
+            box-shadow:
+                0 4px 12px
+                rgba(0,0,0,0.1);
+        }
+
+
+        .news-number {
+
+            display: inline-block;
+
+            background: #2563eb;
+
+            color: white;
+
+            padding: 5px 10px;
+
+            border-radius: 5px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .news-card h2 {
+
+            font-size: 20px;
+
+            margin-bottom: 15px;
+
+            text-transform: capitalize;
+        }
+
+
+        .news-card p {
+
+            color: #555;
+
+            line-height: 1.6;
+        }
+
+
+        footer {
+
+            margin-top: 40px;
+
+            background: #1e293b;
+
+            color: white;
+
+            text-align: center;
+
+            padding: 20px;
+        }
+
+
+        @media(max-width:800px) {
+
+            .news-container {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+        }
+
+
+        @media(max-width:550px) {
+
+            .news-container {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .control {
+
+                flex-direction: column;
+
+                gap: 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <header>
+
+        <h1>
+            📰 News Headlines Viewer
+        </h1>
+
+        <p>
+            Latest headlines from JSON source
+        </p>
+
+    </header>
+
+
+    <main>
+
+
+        <div class="control">
+
+            <button onclick="loadNews()">
+
+                Refresh News
+
+            </button>
+
+
+            <p>
+
+                Auto refresh in
+
+                <span id="timer">
+                    30
+                </span>
+
+                seconds
+
+            </p>
+
+        </div>
+
+
+        <p id="status">
+            Loading news...
+        </p>
+
+
+        <div
+            id="newsContainer"
+            class="news-container">
+        </div>
+
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            News Headlines Viewer using JSON
+        </p>
+
+    </footer>
+
+
+    <script>
+
+        let countdown = 30;
+
+
+        // Load news from JSON source
+        async function loadNews() {
+
+            let container =
+                document.getElementById(
+                    "newsContainer"
+                );
+
+
+            let status =
+                document.getElementById(
+                    "status"
+                );
+
+
+            status.innerText =
+                "Loading news...";
+
+
+            try {
+
+                let response =
+                    await fetch(
+                        "https://jsonplaceholder.typicode.com/posts"
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Network error"
+                    );
+
+                }
+
+
+                let news =
+                    await response.json();
+
+
+                // Clear previous news
+                container.innerHTML = "";
+
+
+                // Display first 12 articles
+                news.slice(0, 12)
+                    .forEach(
+                    function(article, index) {
+
+
+                        let card =
+                            document.createElement(
+                                "article"
+                            );
+
+
+                        card.className =
+                            "news-card";
+
+
+                        card.innerHTML = `
+
+                            <span class="news-number">
+                                #${index + 1}
+                            </span>
+
+                            <h2>
+                                ${article.title}
+                            </h2>
+
+                            <p>
+                                ${article.body}
+                            </p>
+
+                        `;
+
+
+                        container.appendChild(
+                            card
+                        );
+
+                    });
+
+
+                status.innerText =
+                    "News updated successfully.";
+
+
+                // Reset timer
+                countdown = 30;
+
+            }
+
+
+            catch(error) {
+
+                console.log(error);
+
+                status.innerText =
+                    "Unable to load news.";
+
+            }
+
+        }
+
+
+        // Automatically refresh every 30 seconds
+        setInterval(
+            loadNews,
+            30000
+        );
+
+
+        // Countdown
+        setInterval(
+            function() {
+
+                countdown--;
+
+                document.getElementById(
+                    "timer"
+                ).innerText =
+                    countdown;
+
+
+                if (countdown <= 0) {
+
+                    countdown = 30;
+
+                }
+
+            },
+            1000
+        );
+
+
+        // Load news when page opens
+        window.onload = function() {
+
+            loadNews();
+
+        };
+
+    </script>
+
+
+</body>
+
+</html>

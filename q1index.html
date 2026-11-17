@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Weather Information Dashboard</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #74ebd5, #9face6);
+            min-height: 100vh;
+            color: #222;
+        }
+
+        header {
+            text-align: center;
+            background: white;
+            padding: 30px;
+        }
+
+        header h1 {
+            margin-bottom: 10px;
+        }
+
+        main {
+            width: 90%;
+            max-width: 700px;
+            margin: 40px auto;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .search-box button {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        .search-box button:hover {
+            background: #1d4ed8;
+        }
+
+        #message {
+            text-align: center;
+            margin: 15px;
+            font-weight: bold;
+        }
+
+        .weather-card {
+            background: white;
+            border-radius: 15px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .weather-icon {
+            font-size: 60px;
+            margin: 20px;
+        }
+
+        #temperature {
+            font-size: 40px;
+            margin: 15px;
+        }
+
+        .details {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+
+        .detail-box {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            width: 40%;
+        }
+
+        footer {
+            text-align: center;
+            background: white;
+            padding: 20px;
+        }
+
+        @media(max-width:600px) {
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .details {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .detail-box {
+                width: 100%;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <h1>Weather Information Dashboard</h1>
+
+        <p>
+            Check the current weather of your city
+        </p>
+
+    </header>
+
+
+    <main>
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="cityInput"
+                placeholder="Enter city name"
+            >
+
+            <button onclick="getWeather()">
+                Search
+            </button>
+
+        </div>
+
+
+        <p id="message"></p>
+
+
+        <div class="weather-card">
+
+            <h2 id="cityName">
+                City Name
+            </h2>
+
+            <div
+                class="weather-icon"
+                id="weatherIcon">
+                ☀️
+            </div>
+
+            <h3 id="temperature">
+                -- °C
+            </h3>
+
+            <p id="condition">
+                Weather Condition
+            </p>
+
+
+            <div class="details">
+
+                <div class="detail-box">
+
+                    <strong>
+                        Wind Speed
+                    </strong>
+
+                    <p id="windSpeed">
+                        -- km/h
+                    </p>
+
+                </div>
+
+
+                <div class="detail-box">
+
+                    <strong>
+                        Humidity
+                    </strong>
+
+                    <p id="humidity">
+                        -- %
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <footer>
+
+        <p>
+            Weather Dashboard using REST API
+        </p>
+
+    </footer>
+
+
+    <script>
+
+        // Load saved city
+        window.onload = function() {
+
+            let savedCity =
+                localStorage.getItem("preferredCity");
+
+            if (savedCity) {
+
+                document.getElementById("cityInput").value =
+                    savedCity;
+
+                getWeather();
+
+            }
+
+        };
+
+
+        async function getWeather() {
+
+            let city =
+                document.getElementById("cityInput")
+                .value
+                .trim();
+
+            let message =
+                document.getElementById("message");
+
+
+            if (city === "") {
+
+                message.innerText =
+                    "Please enter a city name.";
+
+                return;
+
+            }
+
+
+            message.innerText =
+                "Loading weather information...";
+
+
+            try {
+
+                // Find city latitude and longitude
+                let geoURL =
+                    "https://geocoding-api.open-meteo.com/v1/search?name="
+                    + encodeURIComponent(city)
+                    + "&count=1&language=en&format=json";
+
+
+                let geoResponse =
+                    await fetch(geoURL);
+
+                let geoData =
+                    await geoResponse.json();
+
+
+                if (!geoData.results) {
+
+                    message.innerText =
+                        "City not found.";
+
+                    return;
+
+                }
+
+
+                let location =
+                    geoData.results[0];
+
+
+                let latitude =
+                    location.latitude;
+
+                let longitude =
+                    location.longitude;
+
+
+                // Weather API
+                let weatherURL =
+                    "https://api.open-meteo.com/v1/forecast?"
+                    + "latitude=" + latitude
+                    + "&longitude=" + longitude
+                    + "&current="
+                    + "temperature_2m,"
+                    + "relative_humidity_2m,"
+                    + "wind_speed_10m,"
+                    + "weather_code"
+                    + "&timezone=auto";
+
+
+                let weatherResponse =
+                    await fetch(weatherURL);
+
+                let weatherData =
+                    await weatherResponse.json();
+
+
+                let current =
+                    weatherData.current;
+
+
+                // Display data
+                document.getElementById("cityName")
+                    .innerText =
+                    location.name + ", " + location.country;
+
+
+                document.getElementById("temperature")
+                    .innerText =
+                    current.temperature_2m + " °C";
+
+
+                document.getElementById("humidity")
+                    .innerText =
+                    current.relative_humidity_2m + " %";
+
+
+                document.getElementById("windSpeed")
+                    .innerText =
+                    current.wind_speed_10m + " km/h";
+
+
+                let condition =
+                    getCondition(current.weather_code);
+
+
+                document.getElementById("condition")
+                    .innerText =
+                    condition.text;
+
+
+                document.getElementById("weatherIcon")
+                    .innerText =
+                    condition.icon;
+
+
+                message.innerText =
+                    "Weather information updated successfully.";
+
+
+                // Save city in Local Storage
+                localStorage.setItem(
+                    "preferredCity",
+                    city
+                );
+
+            }
+
+            catch(error) {
+
+                console.log(error);
+
+                message.innerText =
+                    "Unable to retrieve weather information.";
+
+            }
+
+        }
+
+
+        function getCondition(code) {
+
+            if (code === 0) {
+
+                return {
+                    text: "Clear Sky",
+                    icon: "☀️"
+                };
+
+            }
+
+            if (code >= 1 && code <= 3) {
+
+                return {
+                    text: "Partly Cloudy",
+                    icon: "⛅"
+                };
+
+            }
+
+            if (code >= 45 && code <= 48) {
+
+                return {
+                    text: "Foggy",
+                    icon: "🌫️"
+                };
+
+            }
+
+            if (code >= 51 && code <= 67) {
+
+                return {
+                    text: "Rain",
+                    icon: "🌧️"
+                };
+
+            }
+
+            if (code >= 71 && code <= 77) {
+
+                return {
+                    text: "Snow",
+                    icon: "❄️"
+                };
+
+            }
+
+            if (code >= 80 && code <= 82) {
+
+                return {
+                    text: "Rain Showers",
+                    icon: "🌦️"
+                };
+
+            }
+
+            if (code >= 95) {
+
+                return {
+                    text: "Thunderstorm",
+                    icon: "⛈️"
+                };
+
+            }
+
+
+            return {
+                text: "Unknown Weather",
+                icon: "🌤️"
+            };
+
+        }
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WanderGo Travels</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f4f7fb;
+    color: #222;
+    transition: 0.3s;
+}
+
+header {
+    background: #1769aa;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background: white;
+}
+
+button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #1769aa;
+    color: white;
+}
+
+#promotion {
+    text-align: center;
+    padding: 15px;
+    background: #fff3cd;
+    font-weight: bold;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 25px auto;
+}
+
+#destinations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+.card h3 { color: #1769aa; }
+
+#status {
+    margin: 15px 0;
+    font-weight: bold;
+}
+
+.dark {
+    background: #1e1e1e;
+    color: white;
+}
+
+.dark nav { background: #2b2b2b; }
+.dark .card { background: #333; color: white; }
+.dark .card h3 { color: #64b5f6; }
+.dark #promotion { background: #4b4525; }
+
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+    background: #1769aa;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>WanderGo Travels</h1>
+    <p>Explore • Discover • Travel</p>
+</header>
+<nav>
+    <button onclick="loadDestinations()">Load Destinations</button>
+    <button onclick="toggleTheme()">Change Theme</button>
+    <button onclick="showPreference()">My Preference</button>
+</nav>
+
+<div id="promotion">Welcome to WanderGo Travels!</div>
+
+<div class="container">
+    <h2>Popular Destinations</h2>
+    <div id="status">Click "Load Destinations" to explore destinations.</div>
+    <div id="destinations"></div>
+
+    <h2>Callback Demonstration</h2>
+    <button onclick="startBookingProcess()">Start Booking Process</button>
+    <p id="callbackResult"></p>
+</div>
+
+<footer>© 2026 WanderGo Travels Pvt. Ltd.</footer>
+
+<script>
+// 1. TIMER: Promotional messages
+const promotions = [
+    "Flat 20% OFF on Goa Packages!",
+    "Explore Himachal with special discounts!",
+    "Book Maldives packages and save 15%!",
+    "Early Bird Offer: Book your next trip today!"
+];
+
+let promotionIndex = 0;
+
+setInterval(function() {
+    document.getElementById("promotion").textContent =
+        promotions[promotionIndex];
+        promotionIndex++;
+
+    if (promotionIndex >= promotions.length) {
+        promotionIndex = 0;
+    }
+}, 3000);
+
+
+// 2. CALLBACK: Simulated asynchronous booking
+function performTask(task, callback) {
+    document.getElementById("callbackResult").textContent =
+        "Processing " + task + "...";
+
+    setTimeout(function() {
+        callback();
+    }, 2000);
+}
+
+function startBookingProcess() {
+    performTask("booking request", function() {
+        document.getElementById("callbackResult").textContent =
+            "Booking request processed successfully using callback.";
+    });
+}
+
+
+// 3. FETCH API: Asynchronous data retrieval
+function loadDestinations() {
+
+    const status = document.getElementById("status");
+    const container = document.getElementById("destinations");
+
+    status.textContent = "Loading destination information...";
+    container.innerHTML = "";
+
+     fetch("https://dummyjson.com/quotes")
+    .then(function(response) {
+        if (!response.ok) {
+            throw new Error("Unable to retrieve data.");
+        }
+        return response.json();
+    })
+
+    .then(function(data) {
+
+        status.textContent =
+            "Destination information loaded successfully.";
+
+        const destinations = [
+            {
+                name: "Goa",
+                country: "India",
+                price: "₹15,999",
+                description:
+                "Enjoy beaches, nightlife and beautiful coastal views."
+            },
+            {
+                name: "Manali",
+                country: "India",
+                price: "₹18,499",
+                description:
+                "Experience mountains, snow and adventure activities."
+            },
+            {
+                name: "Dubai",
+                country: "UAE",
+                price: "₹42,999",
+                description:
+                "Explore luxury shopping, skyscrapers and desert safaris."
+            },
+            {
+                name: "Maldives",
+                country: "Maldives",
+                price: "₹55,999",
+                description:
+                "Relax at beautiful beaches and luxury island resorts."
+            }
+        ];
+
+        destinations.forEach(function(destination) {
+
+            const card = document.createElement("div");
+            card.className = "card";
+
+            card.innerHTML = `
+                <h3>${destination.name}</h3>
+                <p><strong>Country:</strong>
+                    ${destination.country}</p>
+                <p>${destination.description}</p>
+                <p><strong>Package:</strong>
+                    ${destination.price}</p>
+                <button onclick="saveDestination('${destination.name}')">
+                    Select Destination
+                </button>
+            `;
+
+            container.appendChild(card);
+        });
+    })
+.catch(function(error) {
+        status.textContent = "Error: " + error.message;
+    });
+}
+
+
+// 4. LOCAL STORAGE: Destination preference
+function saveDestination(destination) {
+    localStorage.setItem("selectedDestination", destination);
+
+    alert(destination +
+        " has been saved as your preferred destination.");
+}
+
+
+// 5. LOCAL STORAGE: Theme preference
+function toggleTheme() {
+
+    document.body.classList.toggle("dark");
+
+    const isDark =
+        document.body.classList.contains("dark");
+
+    localStorage.setItem(
+        "theme",
+        isDark ? "dark" : "light"
+    );
+}
+// 6. Read stored preferences
+function showPreference() {
+
+    const destination =
+        localStorage.getItem("selectedDestination");
+
+    const theme =
+        localStorage.getItem("theme") || "light";
+
+    if (destination) {
+        alert(
+            "Preferred Destination: " + destination +
+            "\nTheme: " + theme
+        );
+    } else {
+        alert("No destination preference has been saved.");
+    }
+}
+
+
+// 7. Restore theme after page reload
+window.onload = function() {
+
+    const savedTheme =
+        localStorage.getItem("theme");
+
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark");
+    }
+};
+</script>
+
+</body>
+</html>
